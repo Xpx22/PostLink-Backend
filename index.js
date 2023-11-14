@@ -65,6 +65,4 @@ app.use(apiVersion, authRoutesRouter);
 app.use(apiVersion, employerRoutesRouter);
 app.use(apiVersion, userRoutesRouter);
 
-
-
 app.listen(port, () => console.log(`server listening on port: ${port}`));
