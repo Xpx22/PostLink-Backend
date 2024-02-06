@@ -1,7 +1,7 @@
-const JobPost = require("../models/Jobpost");
-const Employer = require('../models/Employer');
+import JobPost, { find, findById } from "../models/Jobpost";
+import { findOne } from '../models/Employer';
 
-exports.fetchAllJobs =  async (req, res) => {
+export async function fetchAllJobs(req, res) {
     const pageSize = +req.query.pagesize;
     const currentPage = +req.query.page;
     const positionParam = req.query.position;
@@ -20,7 +20,7 @@ exports.fetchAllJobs =  async (req, res) => {
     const sortby = req.query.sortby;
     
     if(pageSize && currentPage){
-        numOfAllJobs = await JobPost.find({
+        numOfAllJobs = await find({
             positionName: {
                 "$regex": positionParam,
                 "$options": "i"
@@ -47,7 +47,7 @@ exports.fetchAllJobs =  async (req, res) => {
 
         switch(sortby){
             case "dateAsc":
-                jobPosts = await JobPost.find({
+                jobPosts = await find({
                     positionName: {"$regex": positionParam,"$options": "i"},
                     companyName: {"$regex": companyParam,"$options": "i"},
                     city: {"$regex": city,"$options": "i"},
@@ -58,7 +58,7 @@ exports.fetchAllJobs =  async (req, res) => {
                 .limit(pageSize);
                 break;
             case "dateDes":
-                jobPosts = await JobPost.find({
+                jobPosts = await find({
                     positionName: {"$regex": positionParam,"$options": "i"},
                     companyName: {"$regex": companyParam,"$options": "i"},
                     city: {"$regex": city,"$options": "i"},
@@ -69,7 +69,7 @@ exports.fetchAllJobs =  async (req, res) => {
                 .limit(pageSize);
                 break;
             case "minAsc":
-                jobPosts = await JobPost.find({
+                jobPosts = await find({
                     positionName: {"$regex": positionParam,"$options": "i"},
                     companyName: {"$regex": companyParam,"$options": "i"},
                     city: {"$regex": city,"$options": "i"},
@@ -80,7 +80,7 @@ exports.fetchAllJobs =  async (req, res) => {
                 .limit(pageSize);
                 break;
             case "minDes":
-                jobPosts = await JobPost.find({
+                jobPosts = await find({
                     positionName: {"$regex": positionParam,"$options": "i"},
                     companyName: {"$regex": companyParam,"$options": "i"},
                     city: {"$regex": city,"$options": "i"},
@@ -91,7 +91,7 @@ exports.fetchAllJobs =  async (req, res) => {
                 .limit(pageSize);
                 break;
             case "maxAsc":
-                jobPosts = await JobPost.find({
+                jobPosts = await find({
                     positionName: {"$regex": positionParam,"$options": "i"},
                     companyName: {"$regex": companyParam,"$options": "i"},
                     city: {"$regex": city,"$options": "i"},
@@ -102,7 +102,7 @@ exports.fetchAllJobs =  async (req, res) => {
                 .limit(pageSize);
                 break;
             case "maxDes":
-                jobPosts = await JobPost.find({
+                jobPosts = await find({
                     positionName: {"$regex": positionParam,"$options": "i"},
                     companyName: {"$regex": companyParam,"$options": "i"},
                     city: {"$regex": city,"$options": "i"},
@@ -113,7 +113,7 @@ exports.fetchAllJobs =  async (req, res) => {
                 .limit(pageSize);
                 break;
             default: 
-                jobPosts = await JobPost.find({
+                jobPosts = await find({
                     positionName: {"$regex": positionParam,"$options": "i"},
                     companyName: {"$regex": companyParam,"$options": "i"},
                     city: {"$regex": city,"$options": "i"},
@@ -137,7 +137,7 @@ exports.fetchAllJobs =  async (req, res) => {
     }
 }
 
-exports.postAJob = async (req, res) => {
+export async function postAJob(req, res) {
     if(!(
         req.body.job.positionName &&
         req.body.job.salaryMin &&
@@ -151,7 +151,7 @@ exports.postAJob = async (req, res) => {
     if(!creatorID){
         return res.status(500).send({ message: "Error in creator ID" });
     }
-    const employer = await Employer.findOne({_id: creatorID});
+    const employer = await findOne({_id: creatorID});
     if(!employer){
         return res.status(500).send({ message: "Error in finding employer" });
     }
@@ -189,9 +189,9 @@ exports.postAJob = async (req, res) => {
     return res.status(201).json({ message: "Job created successfully!" });
 }
 
-exports.fetchAJob = async (req, res)=>{
+export async function fetchAJob(req, res){
     try{
-        const job = await JobPost.findById(req.params.id);
+        const job = await findById(req.params.id);
         if(!job){
             return res.status(404).json({
                 message: "Job not found! code: " + res.statusCode,

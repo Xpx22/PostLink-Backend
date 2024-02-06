@@ -1,15 +1,15 @@
-const mongoose = require("mongoose");
+import { Types } from "mongoose";
 
-const User = require("../models/User");
-const JobApplication = require("../models/JobApplication");
+import { findById, updateOne, find } from "../models/User";
+import JobApplication, { find as _find, deleteOne } from "../models/JobApplication";
 
-exports.fetchUserData = async (req, res) => {
+export async function fetchUserData(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized access to other user's data."
         });
     }
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await findById(req.params.id).select("-password");
     if(!user) {
         return res.status(404).json({
             message: "User does not exist."
@@ -20,7 +20,7 @@ exports.fetchUserData = async (req, res) => {
     });
 }
 
-exports.modifyUserData = async (req, res) => {
+export async function modifyUserData(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized user access!"
@@ -42,7 +42,7 @@ exports.modifyUserData = async (req, res) => {
         phoneNumber: req.body.phoneNumber,
         cvPath: cvPath
     };
-    const updatedUser = await User.updateOne(filter, update, {
+    const updatedUser = await updateOne(filter, update, {
         new: true
     });
 
@@ -57,7 +57,7 @@ exports.modifyUserData = async (req, res) => {
     });
 }
 
-exports.fetchUserBookmarks = async (req, res) => {
+export async function fetchUserBookmarks(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized user bookmark access!"
@@ -66,15 +66,13 @@ exports.fetchUserBookmarks = async (req, res) => {
     const pageSize = +req.query.pagesize;
     const currentPage = +req.query.page;
 
-    let jobPostsOfUser = await User
-        .findById(req.params.id)
+    let jobPostsOfUser = await findById(req.params.id)
         .select("bookmarks -_id")
         .populate("bookmarks");
     const allJobsCount = jobPostsOfUser.bookmarks.length;
 
     if(pageSize && currentPage){
-        jobPostsOfUser = await User
-            .find(
+        jobPostsOfUser = await find(
                 { _id: req.params.id},
                 { bookmarks: {
                     $slice: [pageSize * (currentPage - 1), pageSize]
@@ -94,18 +92,17 @@ exports.fetchUserBookmarks = async (req, res) => {
     });
 }
 
-exports.addUserBookmark = async (req, res) => {
+export async function addUserBookmark(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized user bookmark process!"
         });
     }
 
-    const isBookmarkExistForUser = await User
-        .find({
+    const isBookmarkExistForUser = await find({
             _id: req.params.id,
             "bookmarks": {
-                $in: [mongoose.Types.ObjectId(req.params.pid)]
+                $in: [Types.ObjectId(req.params.pid)]
             }
         });
     if(isBookmarkExistForUser.length > 0){
@@ -123,8 +120,7 @@ exports.addUserBookmark = async (req, res) => {
         }
     };
     
-    const user = await User
-        .updateOne(filter, update);
+    const user = await updateOne(filter, update);
     if(!user){
         return res.status(500).json({
             message: "Adding bookmark to user failed!"
@@ -136,18 +132,17 @@ exports.addUserBookmark = async (req, res) => {
     });
 }
 
-exports.deleteUserBookmark = async (req, res) => {
+export async function deleteUserBookmark(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized user bookmark process!"
         });
     }
 
-    const isBookmarkExistForUser = await User
-        .find({
+    const isBookmarkExistForUser = await find({
             _id: req.params.id,
             "bookmarks": {
-                $in: [mongoose.Types.ObjectId(req.params.pid)]
+                $in: [Types.ObjectId(req.params.pid)]
             }
         });
     if(isBookmarkExistForUser.length < 1){
@@ -165,8 +160,7 @@ exports.deleteUserBookmark = async (req, res) => {
         }
     };
     
-    const user = await User
-        .updateOne(filter, update);
+    const user = await updateOne(filter, update);
     if(!user){
         return res.status(500).json({
             message: "Removing bookmark from user failed!"
@@ -179,7 +173,7 @@ exports.deleteUserBookmark = async (req, res) => {
 }
 
 
-exports.fetchUserAppliedJobs = async (req, res) => {
+export async function fetchUserAppliedJobs(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized user dashboard access!"
@@ -188,8 +182,7 @@ exports.fetchUserAppliedJobs = async (req, res) => {
     const pageSize = +req.query.pagesize;
     const currentPage = +req.query.page;
 
-    let userAppliedJobs = await JobApplication
-        .find({ userID: req.params.id })
+    let userAppliedJobs = await _find({ userID: req.params.id })
         .select("jobID -_id")
         .populate("jobID");
     if(!userAppliedJobs){
@@ -199,8 +192,7 @@ exports.fetchUserAppliedJobs = async (req, res) => {
     }
     const allJobsCount = userAppliedJobs.length;
     if(pageSize && currentPage){
-        userAppliedJobs = await JobApplication
-            .find({ userID: req.params.id})
+        userAppliedJobs = await _find({ userID: req.params.id})
             .skip(pageSize * (currentPage - 1))
             .limit(pageSize)
             .select("jobID -_id")
@@ -228,21 +220,21 @@ exports.fetchUserAppliedJobs = async (req, res) => {
 }
 
 
-exports.applyForJob = async (req, res) => {
+export async function applyForJob(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized user job application process!"
         });
     }
 
-    const hasCV = await User.findById(req.params.id);
+    const hasCV = await findById(req.params.id);
     if(!hasCV.cvPath){
         return res.json({
             message: "Please upload a cv first!"
         });
     }
 
-    const alreadyApplied = await JobApplication.find({
+    const alreadyApplied = await _find({
         userID: req.params.id,
         jobID: req.params.pid
     });
@@ -271,14 +263,14 @@ exports.applyForJob = async (req, res) => {
 }
 
 
-exports.unapplyFromJob = async (req, res) => {
+export async function unapplyFromJob(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized user unapplication process!"
         });
     }
 
-    const alreadyApplied = await JobApplication.find({
+    const alreadyApplied = await _find({
         userID: req.params.id,
         jobID: req.params.pid
     });
@@ -288,8 +280,7 @@ exports.unapplyFromJob = async (req, res) => {
         });
     }
     
-    const result = await JobApplication
-        .deleteOne({
+    const result = await deleteOne({
             userID: req.params.id,
             jobID: req.params.pid
         });

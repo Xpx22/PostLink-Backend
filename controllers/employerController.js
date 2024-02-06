@@ -1,14 +1,14 @@
-const Employer = require("../models/Employer");
-const Jobpost = require("../models/Jobpost");
-const JobApplication = require("../models/JobApplication");
+import { findById, updateOne, findByIdAndUpdate } from "../models/Employer";
+import { updateMany, find, findOneAndUpdate, findByIdAndDelete } from "../models/Jobpost";
+import { find as _find, updateOne as _updateOne } from "../models/JobApplication";
 
-exports.fetchCompanyData = async (req, res) => {
+export async function fetchCompanyData(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized access to other employer's data."
         });
     }
-    const employer = await Employer.findById(req.params.id).select("-password");
+    const employer = await findById(req.params.id).select("-password");
     if(!employer) {
         return res.status(404).json({
             message: "Employer does not exist."
@@ -19,7 +19,7 @@ exports.fetchCompanyData = async (req, res) => {
     });
 }
 
-exports.modifyCompanyData = async (req, res) => {
+export async function modifyCompanyData(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized employer access!"
@@ -44,7 +44,7 @@ exports.modifyCompanyData = async (req, res) => {
         city: req.body.city,
         country: req.body.country
     };
-    const updatedEmployer = await Employer.updateOne(filter, update, {
+    const updatedEmployer = await updateOne(filter, update, {
         new: true
     });
 
@@ -64,7 +64,7 @@ exports.modifyCompanyData = async (req, res) => {
         country: req.body.country
     };
 
-    const updatedJobPosts = await Jobpost.updateMany(filterJob, updateJob);
+    const updatedJobPosts = await updateMany(filterJob, updateJob);
     if(!updatedJobPosts){
         return res.status(500).json({
             message: "Employer jobs data update failed!"
@@ -77,7 +77,7 @@ exports.modifyCompanyData = async (req, res) => {
 }
 
 
-exports.fetchCompanyDashboard = async (req, res) => {
+export async function fetchCompanyDashboard(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized employer posts access!"
@@ -86,8 +86,7 @@ exports.fetchCompanyDashboard = async (req, res) => {
     const pageSize = +req.query.pagesize;
     const currentPage = +req.query.page;
 
-    let jobPostsOfEmployer = await Employer
-        .findById(req.params.id)
+    let jobPostsOfEmployer = await findById(req.params.id)
         .populate("jobPosts");
     const allJobsCount = jobPostsOfEmployer.jobPosts.length;
     if(!jobPostsOfEmployer || !allJobsCount){
@@ -99,15 +98,14 @@ exports.fetchCompanyDashboard = async (req, res) => {
     }
 
     if(pageSize && currentPage){
-        jobPostsOfEmployer = await Jobpost.find({creator: req.params.id})
+        jobPostsOfEmployer = await find({creator: req.params.id})
             .skip(pageSize * (currentPage - 1))
             .limit(pageSize);
     }
     
     const appliedUserCountArray = [];
     for(let i = 0; i < jobPostsOfEmployer.length; i++){
-        const appliedCount = await JobApplication
-            .find({ jobID: jobPostsOfEmployer[i]._id})
+        const appliedCount = await _find({ jobID: jobPostsOfEmployer[i]._id})
             .count();
         appliedUserCountArray.push(appliedCount);
     }
@@ -141,7 +139,7 @@ exports.fetchCompanyDashboard = async (req, res) => {
     });
 }
 
-exports.editJob = async (req, res) => {
+export async function editJob(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Employer ID is invalid!"
@@ -162,7 +160,7 @@ exports.editJob = async (req, res) => {
         salaryMax: req.body.salaryMax
     };
 
-    const updatedJob = await Jobpost.findOneAndUpdate(jobFilter, jobUpdate, {
+    const updatedJob = await findOneAndUpdate(jobFilter, jobUpdate, {
         new: true
     });
     if(!updatedJob) {
@@ -175,7 +173,7 @@ exports.editJob = async (req, res) => {
     });
 }
 
-exports.deleteJob = async (req, res) => {
+export async function deleteJob(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized employer access!"
@@ -190,7 +188,7 @@ exports.deleteJob = async (req, res) => {
         }
     };
 
-    const employer = await Employer.findByIdAndUpdate(req.params.id, empUpdate, {
+    const employer = await findByIdAndUpdate(req.params.id, empUpdate, {
         new: true
     });
 
@@ -200,7 +198,7 @@ exports.deleteJob = async (req, res) => {
         });
     }
 
-    const job = await Jobpost.findByIdAndDelete(req.params.pid);
+    const job = await findByIdAndDelete(req.params.pid);
     if(!job){
         return res.status(404).json({
             message: "job not found!"
@@ -213,7 +211,7 @@ exports.deleteJob = async (req, res) => {
 }
 
 
-exports.fetchAppliedUsersOfAJob = async (req, res) => {
+export async function fetchAppliedUsersOfAJob(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized access!"
@@ -229,8 +227,7 @@ exports.fetchAppliedUsersOfAJob = async (req, res) => {
         status: 1
     };
 
-    const appliedUsers = await JobApplication
-        .find({
+    const appliedUsers = await _find({
             $or: [
                 filter1,
                 filter2
@@ -260,7 +257,7 @@ exports.fetchAppliedUsersOfAJob = async (req, res) => {
     });
 }
 
-exports.acceptAppliedUser = async (req, res) => {
+export async function acceptAppliedUser(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized access!"
@@ -276,7 +273,7 @@ exports.acceptAppliedUser = async (req, res) => {
         status: 1
     };
 
-    const acceptUser = await JobApplication.updateOne(filter, update, {
+    const acceptUser = await _updateOne(filter, update, {
             new: true
         });
     if(!acceptUser){
@@ -289,7 +286,7 @@ exports.acceptAppliedUser = async (req, res) => {
     });
 }
 
-exports.declineAppliedUser = async (req, res) => {
+export async function declineAppliedUser(req, res) {
     if(req.endUserData.endUserID !== req.params.id){
         return res.status(401).json({
             message: "Unauthorized access!"
@@ -305,7 +302,7 @@ exports.declineAppliedUser = async (req, res) => {
         status: -1
     };
 
-    const acceptUser = await JobApplication.updateOne(filter, update, {
+    const acceptUser = await _updateOne(filter, update, {
             new: true
     });
     if(!acceptUser){

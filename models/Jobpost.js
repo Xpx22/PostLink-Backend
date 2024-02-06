@@ -1,8 +1,8 @@
-const mongoose = require("mongoose");
-const moment = require("moment");
+import { Schema, model } from "mongoose";
+import moment from "moment";
 
-const jobpostSchema = new mongoose.Schema({
-	creator: { type: mongoose.Schema.Types.ObjectId, ref: "Employer", required: true },
+const jobpostSchema = new Schema({
+	creator: { type: Schema.Types.ObjectId, ref: "Employer", required: true },
 	companyName: String,
 	logoPath: String,
 	phoneNumber: String,
@@ -20,4 +20,4 @@ const jobpostSchema = new mongoose.Schema({
 	salaryMax: Number
 })
 
-module.exports = mongoose.model("JobPost", jobpostSchema);
+export default model("JobPost", jobpostSchema);

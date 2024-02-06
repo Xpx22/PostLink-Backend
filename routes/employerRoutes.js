@@ -1,9 +1,9 @@
-const express = require("express");
-const router = express.Router();
-const multer = require("multer");
+import { Router } from "express";
+const router = Router();
+import multer, { diskStorage } from "multer";
 
-const authConfirm = require("../middleware/auth-confirm");
-const imgstorage = multer.diskStorage({
+import authConfirm from "../middleware/auth-confirm";
+const imgstorage = diskStorage({
     destination: (req, file, cb) => {
         let error = new Error("File type error!");
         if(file.mimetype.toLowerCase().includes("image")){
@@ -18,43 +18,43 @@ const imgstorage = multer.diskStorage({
     },
 });
 
-const employerController = require("../controllers/employerController");
+import { fetchCompanyData, modifyCompanyData, fetchCompanyDashboard, editJob, deleteJob, fetchAppliedUsersOfAJob, acceptAppliedUser, declineAppliedUser } from "../controllers/employerController";
 
 
 // employers ---------------------------------------------------------------------------------
 ///-------------------------------------------account
-router.get("/employers/:id", authConfirm, employerController.fetchCompanyData);
+router.get("/employers/:id", authConfirm, fetchCompanyData);
 
-router.put("/employers/:id", authConfirm, multer({storage: imgstorage}).single("logo"), employerController.modifyCompanyData);
+router.put("/employers/:id", authConfirm, multer({storage: imgstorage}).single("logo"), modifyCompanyData);
 ///-------------------------------------------account
 
 ///-------------------------------------------dashboard
-router.get("/employers/:id/dashboard", authConfirm, employerController.fetchCompanyDashboard);
+router.get("/employers/:id/dashboard", authConfirm, fetchCompanyDashboard);
 ///-------------------------------------------dashboard
 
 ///-------------------------------------------job edit
-router.put("/employers/:id/dashboard/:pid", authConfirm, employerController.editJob);
+router.put("/employers/:id/dashboard/:pid", authConfirm, editJob);
 ///-------------------------------------------job edit
 
 ///-------------------------------------------job delete
-router.delete("/employers/:id/dashboard/:pid", authConfirm, employerController.deleteJob);
+router.delete("/employers/:id/dashboard/:pid", authConfirm, deleteJob);
 ///-------------------------------------------job delete
 
 
 ///------------------------------------------- fetch applied users
-router.get("/employers/:id/users/:pid", authConfirm, employerController.fetchAppliedUsersOfAJob);
+router.get("/employers/:id/users/:pid", authConfirm, fetchAppliedUsersOfAJob);
 
 ///------------------------------------------- fetch applied users
 
 
 ///------------------------------------------- accept applied user
-router.put("/employers/:id/users/:uid/posts/:pid/accept", authConfirm, employerController.acceptAppliedUser);
+router.put("/employers/:id/users/:uid/posts/:pid/accept", authConfirm, acceptAppliedUser);
 ///------------------------------------------- accept applied user
 
 
 ///------------------------------------------- decline applied user
-router.put("/employers/:id/users/:uid/posts/:pid/decline", authConfirm, employerController.declineAppliedUser);
+router.put("/employers/:id/users/:uid/posts/:pid/decline", authConfirm, declineAppliedUser);
 ///------------------------------------------- decline applied user
 // -----------------------------------------------------------------------------------------
 
-module.exports = router;
+export default router;

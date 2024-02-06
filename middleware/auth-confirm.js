@@ -1,10 +1,10 @@
 require("dotenv").config();
-const jwt = require("jsonwebtoken");
+import { verify } from "jsonwebtoken";
 
-module.exports = function(req, res, next){
+export default function(req, res, next){
     try{
         const reqToken = req.headers.authorization.split(" ")[1];
-        const decodedToken = jwt.verify(reqToken, process.env.JWT_TOKEN_SECRET);
+        const decodedToken = verify(reqToken, process.env.JWT_TOKEN_SECRET);
         req.endUserData = {
             email: decodedToken.email,
             endUserID: decodedToken.endUserID

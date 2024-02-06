@@ -1,12 +1,12 @@
 require("dotenv").config();
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+import { hash, compare } from "bcrypt";
+import { sign } from "jsonwebtoken";
 
-const User = require("../models/User");
-const Employer = require("../models/Employer");
+import User, { findOne } from "../models/User";
+import Employer, { findOne as _findOne } from "../models/Employer";
 
 
-exports.signUp = async(req, res)=>{
+export async function signUp(req, res){
     if(!(req.body.email && req.body.password)){
         return res.status(400).send({ err: "Invalid Email or Password!" });
     }
@@ -17,13 +17,13 @@ exports.signUp = async(req, res)=>{
         });
     }
 
-    const user = await User.findOne({email: req.body.email});
-    const employer = await Employer.findOne({email: req.body.email});
+    const user = await findOne({email: req.body.email});
+    const employer = await _findOne({email: req.body.email});
     if(user || employer) return res.status(400).json({
         message: "Registration already exists!"
     });
 
-    const hashedPW = await bcrypt.hash(req.body.password, 10);
+    const hashedPW = await hash(req.body.password, 10);
     if(!hashedPW){
         return res.status(500).json({
             message: "Password hashing failed!"
@@ -62,7 +62,7 @@ exports.signUp = async(req, res)=>{
     });
 }
 
-exports.signIn = async (req, res)=>{
+export async function signIn(req, res){
     if(!(req.body.email && req.body.password)){
         return res.status(400).send({
             err: "Invalid Email or Password!"
@@ -71,7 +71,7 @@ exports.signIn = async (req, res)=>{
     //if it is employer
     const isEmployer = req.body.isEmployer;
     if(isEmployer){
-        const employer = await Employer.findOne({ email: req.body.email });
+        const employer = await _findOne({ email: req.body.email });
         if(!employer){
             return res.status(404).json({ 
                 message: "Employer email address not found!",
@@ -81,7 +81,7 @@ exports.signIn = async (req, res)=>{
                 employer: undefined
             });
         }
-        const isValidPW = await bcrypt.compare(req.body.password, employer.password);
+        const isValidPW = await compare(req.body.password, employer.password);
         if(!isValidPW) {
             return res.status(401).json({ 
                 message: "Invalid Password.",
@@ -94,7 +94,7 @@ exports.signIn = async (req, res)=>{
         // const token = jwt.sign({email: employer.email, employerID: employer._id}, "secret", {
         //     expiresIn: "1h"
         // });
-        const token = jwt.sign({email: employer.email, endUserID: employer._id}, "secret", {
+        const token = sign({email: employer.email, endUserID: employer._id}, "secret", {
             expiresIn: "1h"
         });
         return res.status(200).json({ 
@@ -107,7 +107,7 @@ exports.signIn = async (req, res)=>{
     }
 
     //if it is user
-    const user = await User.findOne({ email: req.body.email});
+    const user = await findOne({ email: req.body.email});
     if(!user){
         return res.status(404).json({ 
             message: "User email address not found!", 
@@ -118,7 +118,7 @@ exports.signIn = async (req, res)=>{
         });
     }
     
-    const isValidPW = await bcrypt.compare(req.body.password, user.password);
+    const isValidPW = await compare(req.body.password, user.password);
     if(!isValidPW) {
         return res.status(401).json({ 
             message: "Invalid Password.", 
@@ -131,7 +131,7 @@ exports.signIn = async (req, res)=>{
     // const token = jwt.sign({email: user.email, userID: user._id}, process.env.JWT_TOKEN_SECRET, {
     //     expiresIn: "1h"
     // });
-    const token = jwt.sign({email: user.email, endUserID: user._id}, process.env.JWT_TOKEN_SECRET, {
+    const token = sign({email: user.email, endUserID: user._id}, process.env.JWT_TOKEN_SECRET, {
         expiresIn: "1h"
     });
     return res.status(200).json({ 

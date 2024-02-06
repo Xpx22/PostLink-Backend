@@ -1,7 +1,6 @@
-const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
+import { Schema, Types, model } from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
     fullname: {type: String, default: ""},
 	// dateOfBirth: Date,
 	phoneNumber: {type: String, default: ""},
@@ -14,9 +13,9 @@ const userSchema = new mongoose.Schema({
 	cvPath: {type: String, default: ""},
 	// gender: Boolean,
 	// appliedPosts: [jobApplicationSchema],
-	bookmarks: [{ type: mongoose.Types.ObjectId, ref: "JobPost"}]
+	bookmarks: [{ type: Types.ObjectId, ref: "JobPost"}]
 })
 
 // userSchema.plugin(uniqueValidator);
 
-module.exports = mongoose.model("User", userSchema);
+export default model("User", userSchema);

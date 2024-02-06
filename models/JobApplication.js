@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const jobApplicationSchema = new mongoose.Schema({
-	userID: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    jobID: { type: mongoose.Schema.Types.ObjectId, ref: "JobPost" },
+const jobApplicationSchema = new Schema({
+	userID: { type: Schema.Types.ObjectId, ref: "User" },
+    jobID: { type: Schema.Types.ObjectId, ref: "JobPost" },
     status: { type: Number, default: 0 }
 });
 
-module.exports = mongoose.model("JobApplication", jobApplicationSchema);
+export default model("JobApplication", jobApplicationSchema);

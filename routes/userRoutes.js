@@ -1,12 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const multer = require("multer");
+import { Router } from "express";
+import multer, { diskStorage } from "multer";
 
-const authConfirm = require("../middleware/auth-confirm");
+import authConfirm from "../middleware/auth-confirm";
 
+const router = Router();
 
-const cvstorage = multer.diskStorage({
-    destination: (req, file, cb) => {
+const cvstorage = diskStorage({
+    destination: (_req, file, cb) => {
         let error = new Error("File type error!");
         if(file.mimetype.toLowerCase().includes("pdf")){
             error = null;
@@ -20,31 +20,31 @@ const cvstorage = multer.diskStorage({
 });
 
 
-const userController = require("../controllers/userController");
+import { fetchUserData, modifyUserData, fetchUserBookmarks, addUserBookmark, deleteUserBookmark, fetchUserAppliedJobs, applyForJob, unapplyFromJob } from "../controllers/userController";
 
 // users -----------------------------------------------------------------------------------
 ///-------------------------------------------account
-router.get("/users/:id", authConfirm, userController.fetchUserData);
+router.get("/users/:id", authConfirm, fetchUserData);
 
-router.put("/users/:id", authConfirm, multer({storage: cvstorage}).single("cvPath"), userController.modifyUserData);
+router.put("/users/:id", authConfirm, multer({storage: cvstorage}).single("cvPath"), modifyUserData);
 ///-------------------------------------------account
 
 
 ///-------------------------------------------bookmarks
-router.get("/users/:id/bookmarks", authConfirm, userController.fetchUserBookmarks);
+router.get("/users/:id/bookmarks", authConfirm, fetchUserBookmarks);
 
-router.post("/users/:id/bookmarks/:pid", authConfirm, userController.addUserBookmark);
+router.post("/users/:id/bookmarks/:pid", authConfirm, addUserBookmark);
 
-router.delete("/users/:id/bookmarks/:pid", authConfirm, userController.deleteUserBookmark);
+router.delete("/users/:id/bookmarks/:pid", authConfirm, deleteUserBookmark);
 ///-------------------------------------------bookmarks
 
 ///-------------------------------------------dashboard
-router.get("/users/:id/dashboard", authConfirm, userController.fetchUserAppliedJobs);
+router.get("/users/:id/dashboard", authConfirm, fetchUserAppliedJobs);
 
-router.post("/users/:id/dashboard/:pid", authConfirm, userController.applyForJob);
+router.post("/users/:id/dashboard/:pid", authConfirm, applyForJob);
 
-router.delete("/users/:id/dashboard/:pid", authConfirm, userController.unapplyFromJob);
+router.delete("/users/:id/dashboard/:pid", authConfirm, unapplyFromJob);
 ///-------------------------------------------dashboard
 // -----------------------------------------------------------------------------------------
 
-module.exports = router;
+export default router;

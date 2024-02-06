@@ -1,7 +1,6 @@
-const mongoose = require("mongoose");
-const uniqueValidator = require("mongoose-unique-validator");
+import { Schema, Types, model } from "mongoose";
 
-const employerSchema = mongoose.Schema({
+const employerSchema = Schema({
     companyName: {type: String, default: ""},
 	logoPath: {type: String, default: ""},
 	phoneNumber: {type: String, default: ""},
@@ -10,9 +9,9 @@ const employerSchema = mongoose.Schema({
 	website: {type: String, default: ""},
 	city: {type: String, default: ""},
 	country: {type: String, default: ""},
-	jobPosts: [{type: mongoose.Types.ObjectId, ref: "JobPost"}], //array of objectIDs of jobposts
-	bookmarks: [{type: mongoose.Types.ObjectId, ref: "User"}]
+	jobPosts: [{type: Types.ObjectId, ref: "JobPost"}], //array of objectIDs of jobposts
+	bookmarks: [{type: Types.ObjectId, ref: "User"}]
 })
 
 // mongoose.plugin(uniqueValidator);
-module.exports = mongoose.model("Employer", employerSchema);
+export default model("Employer", employerSchema);
